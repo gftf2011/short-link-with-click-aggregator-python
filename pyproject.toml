@@ -1,0 +1,43 @@
+[project]
+name = "short-link-python"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "Gabriel Ferrari Tarallo Ferraz",email = "gftf2011@gmail.com"}
+]
+license = {text = "MIT"}
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "validators (>=0.35.0,<0.36.0)",
+    "sqlalchemy (>=2.0.48,<3.0.0)",
+    "asyncio (>=4.0.0,<5.0.0)",
+    "asyncpg (>=0.31.0,<0.32.0)",
+    "dotenv (>=0.9.9,<0.10.0)",
+    "pydantic (>=2.12.5,<3.0.0)",
+    "redis[async] (>=7.4.0,<8.0.0)",
+    "fastapi (>=0.135.3,<0.136.0)",
+    "alembic (>=1.18.4,<2.0.0)",
+    "greenlet (>=3.3.2,<4.0.0)",
+]
+
+[project.scripts]
+app_dev = "main.app:main"
+
+[tool.poetry]
+packages = [{ include = "main", from = "src" }]
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[dependency-groups]
+dev = [
+    "black (>=26.3.1,<27.0.0)",
+    "locust (>=2.40.0,<3.0.0)",
+    "pytest (>=9.0.2,<10.0.0)",
+    "pytest-asyncio (>=1.3.0,<2.0.0)",
+    "testcontainers (>=4.14.2,<5.0.0)",
+    "httpx (>=0.28.1,<0.29.0)",
+    "freezegun (>=1.5.5,<2.0.0)"
+]
