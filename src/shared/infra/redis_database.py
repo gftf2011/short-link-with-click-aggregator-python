@@ -62,7 +62,7 @@ def redis_client_for_clicks() -> redis.Redis:
         _redis_clicks = redis.Redis(
             max_connections=max_conns,
             decode_responses=True,
-            db=0,
+            db=2,
             host=host,
             port=int(os.getenv("REDIS_FOR_CLICKS_PORT", "6381")),
             username=os.getenv("REDIS_FOR_CLICKS_USERNAME"),

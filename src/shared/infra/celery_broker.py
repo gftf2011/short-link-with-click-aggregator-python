@@ -21,7 +21,7 @@ def celery_app() -> Celery:
         password = os.getenv("REDIS_FOR_CLICKS_PASSWORD", "")
         credentials = f"{username}:{password}@" if username else ""
         broker_url = f"redis://{credentials}{host}:{port}/0"
-        backend_url = broker_url
+        backend_url = f"redis://{credentials}{host}:{port}/1"
         _celery_app = Celery("short_link", broker=broker_url, backend=backend_url)
         _celery_app.conf.update(
             task_serializer="json",
