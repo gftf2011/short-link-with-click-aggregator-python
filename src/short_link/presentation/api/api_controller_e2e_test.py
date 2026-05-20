@@ -347,8 +347,6 @@ def test_given_existing_code_when_calls_redirect_10000_times_then_buffer_should_
     for _ in range(10000):
         shortlink_http_client.get("/v1/shortlink/0010010", follow_redirects=False)
 
-    print("################################### OI ###################################")
-
     clicks_client = redis.Redis(
         host=os.environ["REDIS_FOR_CLICKS_HOST"],
         port=int(os.environ["REDIS_FOR_CLICKS_PORT"]),

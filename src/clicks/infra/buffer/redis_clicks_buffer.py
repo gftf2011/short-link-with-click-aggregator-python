@@ -9,3 +9,10 @@ class RedisClicksBuffer(ClicksBuffer):
 
     def add(self, short_code: str) -> None:
         self.redis_client.rpush("clicks:buffer", short_code)
+
+    async def drain(self) -> list[str]:
+        pipe = self.redis_client.pipeline()
+        pipe.lrange("clicks:buffer", 0, -1)
+        pipe.delete("clicks:buffer")
+        results = await pipe.execute()
+        return results[0]
