@@ -2,6 +2,7 @@ from dataclasses import dataclass
 
 from shared.usecases.exceptions import ApplicationException
 from shared.usecases.usecase import UseCase
+from shared.handlers.mediator import Mediator
 from short_link.domain.repositories.shortlink_repository import ShortLinkRepository
 from short_link.domain.shortlink_aggregate import ShortLinkAggregate
 
@@ -19,8 +20,9 @@ class RedirectShortLinkUseCaseOutput:
 class RedirectShortLinkUseCase(
     UseCase[RedirectShortLinkUseCaseInput, RedirectShortLinkUseCaseOutput]
 ):
-    def __init__(self, short_link_repository: ShortLinkRepository):
+    def __init__(self, short_link_repository: ShortLinkRepository, mediator: Mediator):
         self.short_link_repository = short_link_repository
+        self.mediator = mediator
 
     async def execute(
         self, input: RedirectShortLinkUseCaseInput
@@ -34,6 +36,8 @@ class RedirectShortLinkUseCase(
                     f"Short link not found for code: {input.code}"
                 )
             short_link.validate_expires_at()
+            short_link.click()
+            await self.mediator.publish(short_link.events)
             return RedirectShortLinkUseCaseOutput(url=short_link.url)
         except Exception as e:
             raise e

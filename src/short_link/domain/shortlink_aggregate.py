@@ -4,6 +4,7 @@ from uuid import UUID
 
 from shared.domain.entity import Entity
 from shared.domain.exceptions import DomainException
+from short_link.domain.events.shortlink_clicked_event import ShortlinkClickedEvent
 from short_link.domain.validators.expires_at.expires_at_validator_pipeline import (
     ExpiresAtValidatorPipeline as ExpiresAtValidator,
 )
@@ -69,3 +70,7 @@ class ShortLinkAggregate(Entity):
         ExpiresAtValidator.validate(self.expires_at, self.notification)
         if self.notification.has_exceptions():
             raise DomainException(self.notification.messages)
+    
+    def click(self) -> None:
+        self.events.append(ShortlinkClickedEvent(short_code=self.short_code))
+
