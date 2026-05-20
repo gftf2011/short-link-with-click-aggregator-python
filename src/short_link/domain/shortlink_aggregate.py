@@ -70,7 +70,6 @@ class ShortLinkAggregate(Entity):
         ExpiresAtValidator.validate(self.expires_at, self.notification)
         if self.notification.has_exceptions():
             raise DomainException(self.notification.messages)
-    
+
     def click(self) -> None:
         self.events.append(ShortlinkClickedEvent(short_code=self.short_code))
-

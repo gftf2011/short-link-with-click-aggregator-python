@@ -32,7 +32,9 @@ async def test_given_valid_input_when_calls_execute_then_should_return_url():
     short_link_repository = Mock(spec=ShortLinkRepository)
     short_link_repository.get_by_code = AsyncMock(return_value=aggregate)
     mediator = Mock(spec=Mediator)
-    use_case = RedirectShortLinkUseCase(short_link_repository=short_link_repository, mediator=mediator)
+    use_case = RedirectShortLinkUseCase(
+        short_link_repository=short_link_repository, mediator=mediator
+    )
     result = await use_case.execute(RedirectShortLinkUseCaseInput(code="a1b2c3d"))
     assert result.url == "https://example.com"
     short_link_repository.get_by_code.assert_awaited_once_with("a1b2c3d")
@@ -47,7 +49,9 @@ async def test_given_valid_input_when_calls_execute_and_does_not_find_short_link
     short_link_repository = Mock(spec=ShortLinkRepository)
     short_link_repository.get_by_code = AsyncMock(return_value=None)
     mediator = Mock(spec=Mediator)
-    use_case = RedirectShortLinkUseCase(short_link_repository=short_link_repository, mediator=mediator)
+    use_case = RedirectShortLinkUseCase(
+        short_link_repository=short_link_repository, mediator=mediator
+    )
     with pytest.raises(
         ApplicationException, match=re.escape("Short link not found for code: a1b2c3d")
     ):
@@ -71,7 +75,9 @@ async def test_given_short_link_expired_when_calls_execute_then_should_raise_dom
     short_link_repository = Mock(spec=ShortLinkRepository)
     short_link_repository.get_by_code = AsyncMock(return_value=aggregate)
     mediator = Mock(spec=Mediator)
-    use_case = RedirectShortLinkUseCase(short_link_repository=short_link_repository, mediator=mediator)
+    use_case = RedirectShortLinkUseCase(
+        short_link_repository=short_link_repository, mediator=mediator
+    )
     with pytest.raises(
         DomainException, match=re.escape("expires_at cannot be in the past")
     ):
@@ -87,7 +93,9 @@ async def test_given_valid_input_when_calls_execute_and_repository_raises_except
         side_effect=Exception("Repository error")
     )
     mediator = Mock(spec=Mediator)
-    use_case = RedirectShortLinkUseCase(short_link_repository=short_link_repository, mediator=mediator)
+    use_case = RedirectShortLinkUseCase(
+        short_link_repository=short_link_repository, mediator=mediator
+    )
     with pytest.raises(Exception, match=re.escape("Repository error")):
         await use_case.execute(RedirectShortLinkUseCaseInput(code="a1b2c3d"))
     short_link_repository.get_by_code.assert_awaited_once_with("a1b2c3d")
