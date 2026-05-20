@@ -1,6 +1,6 @@
 from clicks.domain.buffer.clicks_buffer import ClicksBuffer
 from shared.handlers.handler import Handler
-from short_link.domain.events.shortlink_clicked_event import ShortlinkClickedEvent
+from shared.domain.events.shortlink_clicked_event import ShortlinkClickedEvent
 
 
 class CountClicksHandler(Handler[ShortlinkClickedEvent, None]):

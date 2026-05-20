@@ -41,6 +41,7 @@ from short_link.usecases.set_shortlink_codes_and_counter.set_shortlink_codes_and
 
 
 def http(session: AsyncSession):
+    from clicks.main.factory.clicks import worker
     from shared.infra.redis_database import (
         redis_client_for_shortlink_cache,
         redis_client_for_shortlink_codes,
@@ -69,6 +70,7 @@ def http(session: AsyncSession):
 
     redirect_short_link_use_case = RedirectShortLinkUseCase(
         short_link_repository=short_link_repository_proxy,
+        mediator=worker(),
     )
 
     retrieve_unitofwork = RetrieveUnitOfWork[

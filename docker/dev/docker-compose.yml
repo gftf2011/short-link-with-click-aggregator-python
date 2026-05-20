@@ -65,6 +65,30 @@ services:
           cpus: "0.25"
           memory: 128M
 
+  redis_clicks:
+    build:
+      context: ./redis-clicks
+      dockerfile: Dockerfile
+    environment:
+      REDIS_CLICKS_MASTER_PASSWORD: ${REDIS_CLICKS_MASTER_PASSWORD:-clicks_master_dev}
+      REDIS_CLICKS_MAXMEMORY: ${REDIS_CLICKS_MAXMEMORY:-128mb}
+      REDIS_CLICKS_APP_USERNAME: ${REDIS_CLICKS_APP_USERNAME:-shortlink_clicks}
+      REDIS_CLICKS_APP_PASSWORD: ${REDIS_CLICKS_APP_PASSWORD:-clicks_dev_secret}
+    ports:
+      - "${REDIS_CLICKS_PUBLISH_PORT:-6381}:6381"
+    volumes:
+      - shortlink_dev_redis_clicks_data:/data
+    healthcheck:
+      test: ["CMD", "/usr/local/bin/redis-healthcheck.sh"]
+      interval: 3s
+      timeout: 3s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: 128M
+
   api:
     build:
       context: ../..
@@ -79,6 +103,10 @@ services:
       REDIS_FOR_SHORTLINK_CODES_PORT: "6380"
       REDIS_FOR_SHORTLINK_CODES_USERNAME: ${REDIS_CODES_APP_USERNAME:-shortlink_codes}
       REDIS_FOR_SHORTLINK_CODES_PASSWORD: ${REDIS_CODES_APP_PASSWORD:-codes_dev_secret}
+      REDIS_FOR_CLICKS_HOST: redis_clicks
+      REDIS_FOR_CLICKS_PORT: "6381"
+      REDIS_FOR_CLICKS_USERNAME: ${REDIS_CLICKS_APP_USERNAME:-shortlink_clicks}
+      REDIS_FOR_CLICKS_PASSWORD: ${REDIS_CLICKS_APP_PASSWORD:-clicks_dev_secret}
     ports:
       - "${API_PORT:-8000}:8000"
     depends_on:
@@ -87,6 +115,8 @@ services:
       redis_cache:
         condition: service_healthy
       redis_codes:
+        condition: service_healthy
+      redis_clicks:
         condition: service_healthy
     deploy:
       resources:
@@ -136,3 +166,4 @@ volumes:
   shortlink_dev_pgdata:
   shortlink_dev_redis_cache_data:
   shortlink_dev_redis_codes_data:
+  shortlink_dev_redis_clicks_data:

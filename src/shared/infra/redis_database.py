@@ -3,13 +3,15 @@ import redis.asyncio as redis
 
 _redis_cache: redis.Redis | None = None
 _redis_codes: redis.Redis | None = None
+_redis_clicks: redis.Redis | None = None
 
 
 def reset_redis_clients() -> None:
     """Drop cached clients so the next access rebuilds from current env (tests / multi-app)."""
-    global _redis_cache, _redis_codes
+    global _redis_cache, _redis_codes, _redis_clicks
     _redis_cache = None
     _redis_codes = None
+    _redis_clicks = None
 
 
 def redis_client_for_shortlink_cache() -> redis.Redis:
@@ -48,3 +50,22 @@ def redis_client_for_shortlink_codes() -> redis.Redis:
             password=os.getenv("REDIS_FOR_SHORTLINK_CODES_PASSWORD"),
         )
     return _redis_codes
+
+
+def redis_client_for_clicks() -> redis.Redis:
+    global _redis_clicks
+    if _redis_clicks is None:
+        host = os.getenv("REDIS_FOR_CLICKS_HOST")
+        if not host:
+            raise ValueError("REDIS_FOR_CLICKS_HOST is not set")
+        max_conns = int(os.getenv("REDIS_FOR_CLICKS_MAX_CONNECTIONS", "512"))
+        _redis_clicks = redis.Redis(
+            max_connections=max_conns,
+            decode_responses=True,
+            db=0,
+            host=host,
+            port=int(os.getenv("REDIS_FOR_CLICKS_PORT", "6381")),
+            username=os.getenv("REDIS_FOR_CLICKS_USERNAME"),
+            password=os.getenv("REDIS_FOR_CLICKS_PASSWORD"),
+        )
+    return _redis_clicks

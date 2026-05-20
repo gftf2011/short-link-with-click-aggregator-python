@@ -37,7 +37,7 @@ class RedirectShortLinkUseCase(
                 )
             short_link.validate_expires_at()
             short_link.click()
-            await self.mediator.publish(short_link.events)
+            self.mediator.publish(short_link.events)
             return RedirectShortLinkUseCaseOutput(url=short_link.url)
         except Exception as e:
             raise e

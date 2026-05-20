@@ -4,7 +4,7 @@ from uuid import UUID
 
 from shared.domain.entity import Entity
 from shared.domain.exceptions import DomainException
-from short_link.domain.events.shortlink_clicked_event import ShortlinkClickedEvent
+from shared.domain.events.shortlink_clicked_event import ShortlinkClickedEvent
 from short_link.domain.validators.expires_at.expires_at_validator_pipeline import (
     ExpiresAtValidatorPipeline as ExpiresAtValidator,
 )
