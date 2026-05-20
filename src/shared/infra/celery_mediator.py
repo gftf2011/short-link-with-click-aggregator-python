@@ -1,9 +1,17 @@
 from collections import defaultdict
+from datetime import datetime
 
 from celery import Task
 
 from shared.domain.event import Event
 from shared.handlers.mediator import Mediator
+
+
+def _to_json_safe(event: Event) -> dict:
+    return {
+        k: v.isoformat() if isinstance(v, datetime) else v
+        for k, v in event.__dict__.items()
+    }
 
 
 class CeleryMediator(Mediator):
@@ -16,4 +24,4 @@ class CeleryMediator(Mediator):
     def publish(self, events: list[Event]) -> None:
         for event in events:
             for task in self._tasks[type(event)]:
-                task.delay(event.__dict__)
+                task.delay(_to_json_safe(event))

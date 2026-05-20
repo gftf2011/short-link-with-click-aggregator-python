@@ -23,12 +23,16 @@ _PROJECT_ROOT = Path(__file__).resolve().parents[4]
 
 E2E_REDIS1_DB_PASSWORD = "e2eRedisDBAuthPass01"
 E2E_REDIS2_DB_PASSWORD = "e2eRedisDBAuthPass02"
+E2E_REDIS3_DB_PASSWORD = "e2eRedisDBAuthPass03"
 
 E2E_REDIS1_USER = "e2eRedisUser01"
 E2E_REDIS1_USER_PASSWORD = "e2eRedisUserAuthPass01"
 
 E2E_REDIS2_USER = "e2eRedisUser02"
 E2E_REDIS2_USER_PASSWORD = "e2eRedisUserAuthPass02"
+
+E2E_REDIS3_USER = "e2eRedisUser03"
+E2E_REDIS3_USER_PASSWORD = "e2eRedisUserAuthPass03"
 
 E2E_POSTGRES_USERNAME = "admin_test"
 E2E_POSTGRES_PASSWORD = "admin_test"
@@ -116,14 +120,47 @@ def start_shortlink_codes() -> (
 
 
 @pytest.fixture(scope="module")
+def start_shortlink_clicks() -> (
+    Generator[tuple[RedisContainer, redis.Redis], None, None]
+):
+    with RedisContainer(
+        "redis:7-alpine", password=E2E_REDIS3_DB_PASSWORD, port=6381
+    ).with_command(
+        f"redis-server --requirepass {E2E_REDIS3_DB_PASSWORD} --port 6381"
+    ) as clicks:
+        clicks_host = clicks.get_container_host_ip()
+        clicks_port = int(clicks.get_exposed_port(6381))
+
+        clicks_admin = redis.Redis(
+            host=clicks_host,
+            port=clicks_port,
+            password=E2E_REDIS3_DB_PASSWORD,
+            decode_responses=True,
+        )
+        clicks_admin.execute_command(
+            f"ACL SETUSER {E2E_REDIS3_USER} ON >{E2E_REDIS3_USER_PASSWORD} +@all ~* &*"
+        )
+        clicks_admin.execute_command("ACL SETUSER default off")
+
+        yield (clicks, clicks_admin)
+
+        clicks_admin.close()
+
+
+@pytest.fixture(scope="module")
 def set_env(
     start_shortlink_cache: tuple[RedisContainer, redis.Redis],
     start_shortlink_codes: tuple[RedisContainer, redis.Redis],
+    start_shortlink_clicks: tuple[RedisContainer, redis.Redis],
     start_shortlink_database: PostgresContainer,
 ):
+    from clicks.main.factory.clicks import worker
+    from shared.infra.celery_broker import reset_celery_app
     from shared.infra.redis_database import reset_redis_clients
 
     reset_redis_clients()
+    reset_celery_app()
+    worker.cache_clear()
 
     os.environ["REDIS_FOR_SHORTLINK_CACHE_HOST"] = start_shortlink_cache[
         0
@@ -141,6 +178,14 @@ def set_env(
     )
     os.environ["REDIS_FOR_SHORTLINK_CODES_USERNAME"] = E2E_REDIS2_USER
     os.environ["REDIS_FOR_SHORTLINK_CODES_PASSWORD"] = E2E_REDIS2_USER_PASSWORD
+    os.environ["REDIS_FOR_CLICKS_HOST"] = start_shortlink_clicks[
+        0
+    ].get_container_host_ip()
+    os.environ["REDIS_FOR_CLICKS_PORT"] = str(
+        start_shortlink_clicks[0].get_exposed_port(6381)
+    )
+    os.environ["REDIS_FOR_CLICKS_USERNAME"] = E2E_REDIS3_USER
+    os.environ["REDIS_FOR_CLICKS_PASSWORD"] = E2E_REDIS3_USER_PASSWORD
     os.environ["DATABASE_URL"] = start_shortlink_database.get_connection_url()
     yield start_shortlink_database
 
@@ -196,6 +241,21 @@ def clean_shortlink_codes(set_env):
     finally:
         codes_admin.close()
     ShortLinkCodeList.reset()
+
+
+@pytest.fixture(scope="function", autouse=True)
+def clean_shortlink_clicks(set_env):
+    clicks_admin = redis.Redis(
+        host=os.environ["REDIS_FOR_CLICKS_HOST"],
+        port=int(os.environ["REDIS_FOR_CLICKS_PORT"]),
+        username=E2E_REDIS3_USER,
+        password=E2E_REDIS3_USER_PASSWORD,
+        decode_responses=True,
+    )
+    try:
+        clicks_admin.flushdb()
+    finally:
+        clicks_admin.close()
 
 
 @pytest.fixture(scope="module")
