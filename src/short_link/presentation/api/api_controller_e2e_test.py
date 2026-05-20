@@ -339,6 +339,29 @@ def test_given_code_which_does_not_exists_when_calls_redirect_then_should_return
     }
 
 
+def test_given_existing_code_when_calls_redirect_10000_times_then_buffer_should_have_1000_items(
+    shortlink_http_client: TestClient,
+):
+    shortlink_http_client.post("/v1/shortlink", json={"url": "https://www.google.com"})
+
+    for _ in range(10000):
+        shortlink_http_client.get("/v1/shortlink/0010010", follow_redirects=False)
+
+    print("################################### OI ###################################")
+
+    clicks_client = redis.Redis(
+        host=os.environ["REDIS_FOR_CLICKS_HOST"],
+        port=int(os.environ["REDIS_FOR_CLICKS_PORT"]),
+        username=E2E_REDIS3_USER,
+        password=E2E_REDIS3_USER_PASSWORD,
+        decode_responses=True,
+    )
+    try:
+        assert clicks_client.llen("celery") == 10000
+    finally:
+        clicks_client.close()
+
+
 def test_given_code_which_expires_at_is_in_the_past_when_calls_redirect_then_should_return_400(
     shortlink_http_client: TestClient,
 ):
