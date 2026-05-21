@@ -142,6 +142,44 @@ services:
           cpus: "0.25"
           memory: 128M
 
+  celery_worker:
+    build:
+      context: ../..
+      dockerfile: docker/dev/celery/Dockerfile
+    command: ["celery", "-A", "main.worker.index", "worker", "--loglevel=info"]
+    environment:
+      REDIS_FOR_CLICKS_HOST: redis_clicks
+      REDIS_FOR_CLICKS_PORT: "6381"
+      REDIS_FOR_CLICKS_USERNAME: ${REDIS_CLICKS_APP_USERNAME:-shortlink_clicks}
+      REDIS_FOR_CLICKS_PASSWORD: ${REDIS_CLICKS_APP_PASSWORD:-clicks_dev_secret}
+    depends_on:
+      redis_clicks:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 256M
+
+  celery_beat:
+    build:
+      context: ../..
+      dockerfile: docker/dev/celery/Dockerfile
+    command: ["celery", "-A", "main.worker.index", "beat", "--loglevel=info", "--schedule", "/tmp/celerybeat-schedule"]
+    environment:
+      REDIS_FOR_CLICKS_HOST: redis_clicks
+      REDIS_FOR_CLICKS_PORT: "6381"
+      REDIS_FOR_CLICKS_USERNAME: ${REDIS_CLICKS_APP_USERNAME:-shortlink_clicks}
+      REDIS_FOR_CLICKS_PASSWORD: ${REDIS_CLICKS_APP_PASSWORD:-clicks_dev_secret}
+    depends_on:
+      redis_clicks:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: 128M
+
   batch:
     build:
       context: ../..

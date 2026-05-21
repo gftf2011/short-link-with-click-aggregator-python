@@ -1,0 +1,1 @@
+user ${REDIS_CLICKS_APP_USERNAME} on >${REDIS_CLICKS_APP_PASSWORD} ~* &* +@all
