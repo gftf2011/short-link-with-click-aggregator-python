@@ -3,14 +3,15 @@ import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from main.server.routes import healthcheck, shortlink
+import shared.infra.sqlalchemy_database as _db
+from main.server.routes import clicks, healthcheck, shortlink
 from main.server.loader.load import load
 
 from shared.infra.redis_database import (
     redis_client_for_shortlink_cache,
     redis_client_for_shortlink_codes,
+    sync_redis_client_for_clicks,
 )
-from shared.infra.sqlalchemy_database import engine
 
 
 def application() -> FastAPI:
@@ -21,9 +22,11 @@ def application() -> FastAPI:
 
         yield
 
-        await engine.dispose()
+        if _db.engine is not None:
+            await _db.engine.dispose()
         await redis_client_for_shortlink_cache().aclose()
         await redis_client_for_shortlink_codes().aclose()
+        sync_redis_client_for_clicks().close()
 
     app = FastAPI(lifespan=lifespan)
 
@@ -37,5 +40,6 @@ def application() -> FastAPI:
 
     app.include_router(healthcheck.router)
     app.include_router(shortlink.router)
+    app.include_router(clicks.router)
 
     return app

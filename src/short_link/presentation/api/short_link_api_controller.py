@@ -28,7 +28,7 @@ from short_link.presentation.api.dtos.redirect_shortlink_response import (
 )
 
 
-class ApiController:
+class ShortLinkApiController:
     @staticmethod
     def _status_for_exception(e: Exception, *, default: int) -> int:
         if isinstance(

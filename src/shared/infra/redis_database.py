@@ -54,25 +54,6 @@ def redis_client_for_shortlink_codes() -> aioredis.Redis:
     return _redis_codes
 
 
-def redis_client_for_clicks() -> aioredis.Redis:
-    global _redis_clicks
-    if _redis_clicks is None:
-        host = os.getenv("REDIS_FOR_CLICKS_HOST")
-        if not host:
-            raise ValueError("REDIS_FOR_CLICKS_HOST is not set")
-        max_conns = int(os.getenv("REDIS_FOR_CLICKS_MAX_CONNECTIONS", "512"))
-        _redis_clicks = aioredis.Redis(
-            max_connections=max_conns,
-            decode_responses=True,
-            db=2,
-            host=host,
-            port=int(os.getenv("REDIS_FOR_CLICKS_PORT", "6381")),
-            username=os.getenv("REDIS_FOR_CLICKS_USERNAME"),
-            password=os.getenv("REDIS_FOR_CLICKS_PASSWORD"),
-        )
-    return _redis_clicks
-
-
 def sync_redis_client_for_clicks() -> redis.Redis:
     global _redis_clicks_sync
     if _redis_clicks_sync is None:

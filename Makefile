@@ -7,7 +7,7 @@ loadtestcreate:
 
 
 loadtestredirect:
-	poetry run locust -f locust/redirect.py --headless -u 300 -r 300 -t 30s
+	poetry run locust -f locust/redirect.py --headless -u 300 -r 300 -t 60s
 
 
 stresstestcreate:

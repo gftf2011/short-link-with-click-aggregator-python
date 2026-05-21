@@ -2,11 +2,11 @@ from collections.abc import AsyncGenerator
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from shared.infra.sqlalchemy_database import AsyncSessionLocal
+import shared.infra.sqlalchemy_database as _db
 
 
 async def get_async_session() -> AsyncGenerator[AsyncSession, None]:
-    session = AsyncSessionLocal()
+    session = _db.AsyncSessionLocal()
     try:
         yield session
     finally:

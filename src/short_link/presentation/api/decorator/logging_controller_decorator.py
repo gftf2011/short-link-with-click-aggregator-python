@@ -1,7 +1,7 @@
 import json
 import logging
 
-from short_link.presentation.api.controller import ApiController
+from short_link.presentation.api.short_link_api_controller import ShortLinkApiController
 from short_link.presentation.api.dtos.create_shortlink_request import (
     CreateShortLinkRequestDTO,
 )
@@ -18,8 +18,8 @@ from short_link.presentation.api.dtos.redirect_shortlink_response import (
 logger = logging.getLogger(__name__)
 
 
-class LoggingControllerDecorator(ApiController):
-    def __init__(self, controller: ApiController):
+class LoggingControllerDecorator(ShortLinkApiController):
+    def __init__(self, controller: ShortLinkApiController):
         self.controller = controller
 
     async def create(

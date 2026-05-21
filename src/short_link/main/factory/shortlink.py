@@ -12,7 +12,7 @@ from short_link.infra.repositories.sqlalchemy_shortlink_repository import (
     SqlAlchemyShortLinkRepository,
 )
 from short_link.presentation.batch.controller import BatchController
-from short_link.presentation.api.controller import ApiController
+from short_link.presentation.api.short_link_api_controller import ShortLinkApiController
 from short_link.presentation.api.decorator.logging_controller_decorator import (
     LoggingControllerDecorator,
 )
@@ -81,7 +81,7 @@ def http(session: AsyncSession):
     )
 
     controller = LoggingControllerDecorator(
-        controller=ApiController(
+        controller=ShortLinkApiController(
             createShortLinkUseCase=transaction_unitofwork,
             redirectShortLinkUseCase=retrieve_unitofwork,
         )

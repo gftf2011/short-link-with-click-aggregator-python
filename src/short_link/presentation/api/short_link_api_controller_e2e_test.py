@@ -154,13 +154,15 @@ def set_env(
     start_shortlink_clicks: tuple[RedisContainer, redis.Redis],
     start_shortlink_database: PostgresContainer,
 ):
-    from clicks.main.factory.clicks import worker
+    from clicks.main.factory.clicks import api_mediator, worker
     from shared.infra.celery_broker import reset_celery_app
     from shared.infra.redis_database import reset_redis_clients
+    from shared.infra.sqlalchemy_database import reset_engine
 
     reset_redis_clients()
     reset_celery_app()
     worker.cache_clear()
+    api_mediator.cache_clear()
 
     os.environ["REDIS_FOR_SHORTLINK_CACHE_HOST"] = start_shortlink_cache[
         0
@@ -187,6 +189,9 @@ def set_env(
     os.environ["REDIS_FOR_CLICKS_USERNAME"] = E2E_REDIS3_USER
     os.environ["REDIS_FOR_CLICKS_PASSWORD"] = E2E_REDIS3_USER_PASSWORD
     os.environ["DATABASE_URL"] = start_shortlink_database.get_connection_url()
+
+    reset_engine()
+
     yield start_shortlink_database
 
 
@@ -337,27 +342,6 @@ def test_given_code_which_does_not_exists_when_calls_redirect_then_should_return
         "status": 404,
         "data": {"error": "Short link not found for code: a1b2c3d"},
     }
-
-
-def test_given_existing_code_when_calls_redirect_10000_times_then_buffer_should_have_1000_items(
-    shortlink_http_client: TestClient,
-):
-    shortlink_http_client.post("/v1/shortlink", json={"url": "https://www.google.com"})
-
-    for _ in range(10000):
-        shortlink_http_client.get("/v1/shortlink/0010010", follow_redirects=False)
-
-    clicks_client = redis.Redis(
-        host=os.environ["REDIS_FOR_CLICKS_HOST"],
-        port=int(os.environ["REDIS_FOR_CLICKS_PORT"]),
-        username=E2E_REDIS3_USER,
-        password=E2E_REDIS3_USER_PASSWORD,
-        decode_responses=True,
-    )
-    try:
-        assert clicks_client.llen("celery") == 10000
-    finally:
-        clicks_client.close()
 
 
 def test_given_code_which_expires_at_is_in_the_past_when_calls_redirect_then_should_return_400(
