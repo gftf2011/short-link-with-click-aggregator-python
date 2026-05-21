@@ -18,6 +18,14 @@ stresstestredirect:
 	poetry run locust -f locust/redirect.py --headless -u 300 -r 30 -t 30s
 
 
+loadtestcount:
+	poetry run locust -f locust/count.py --headless -u 300 -r 300 -t 60s
+
+
+stresstestcount:
+	poetry run locust -f locust/count.py --headless -u 300 -r 30 -t 30s
+
+
 unittest:
 	poetry run pytest src/ -v -c pytest-unit.ini
 
