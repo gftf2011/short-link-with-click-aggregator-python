@@ -1,6 +1,6 @@
 # short-link-python
 
-URL shortener API (FastAPI) backed by Postgres + Redis, with a batch worker for short-code generation and a Celery-based click aggregation pipeline.
+URL shortener API (FastAPI) backend by Postgres + Redis, with a batch worker for short-code generation and a Celery-based click aggregation pipeline.
 
 ## Requirements
 
