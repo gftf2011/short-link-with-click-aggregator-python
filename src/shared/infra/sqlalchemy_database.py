@@ -34,3 +34,7 @@ def reset_engine() -> None:
     global engine, AsyncSessionLocal
     engine = _build_engine()
     AsyncSessionLocal = _build_session_factory(engine)
+
+
+if os.getenv("DATABASE_URL") is not None:
+    reset_engine()
