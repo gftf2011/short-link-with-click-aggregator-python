@@ -1,7 +1,7 @@
 from redis.asyncio import Redis
 
 from clicks.domain.aggregator.clicks_aggregator import ClicksAggregator
-from clicks.infra.aggregator.redis_clicks_lock import RedisClicksLock
+from clicks.infra.lock.redis_clicks_lock import RedisClicksLock
 
 
 class RedisClicksAggregator(ClicksAggregator):

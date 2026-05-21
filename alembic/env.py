@@ -21,8 +21,12 @@ from shared.infra.models.base import Base  # noqa: E402
 from short_link.infra.repositories.sqlalchemy_shortlink_model import (  # noqa: E402
     SqlAlchemyShortLinkModel,
 )
+from clicks.infra.repositories.sqlalchemy_clicks_model import (  # noqa: E402
+    SqlAlchemyClicksModel,
+)
 
 _ = SqlAlchemyShortLinkModel  # register models on Base.metadata
+_ = SqlAlchemyClicksModel
 
 config = context.config
 

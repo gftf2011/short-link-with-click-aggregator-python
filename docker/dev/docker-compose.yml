@@ -3,6 +3,7 @@ name: short-link-dev
 services:
   postgres:
     image: postgres:17.9-alpine
+    command: postgres -N 200
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-dev}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-dev}
@@ -47,7 +48,7 @@ services:
       dockerfile: Dockerfile
     environment:
       REDIS_CODES_MASTER_PASSWORD: ${REDIS_CODES_MASTER_PASSWORD:-codes_master_dev}
-      REDIS_CODES_MAXMEMORY: ${REDIS_CODES_MAXMEMORY:-128mb}
+      REDIS_CODES_MAXMEMORY: ${REDIS_CODES_MAXMEMORY:-512mb}
       REDIS_CODES_APP_USERNAME: ${REDIS_CODES_APP_USERNAME:-shortlink_codes}
       REDIS_CODES_APP_PASSWORD: ${REDIS_CODES_APP_PASSWORD:-codes_dev_secret}
     ports:
@@ -63,7 +64,7 @@ services:
       resources:
         limits:
           cpus: "0.25"
-          memory: 128M
+          memory: 768M
 
   redis_clicks:
     build:
@@ -121,8 +122,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "2.0"
-          memory: 256M
+          cpus: "3.0"
+          memory: 512M
 
   proxy:
     build:
@@ -146,13 +147,16 @@ services:
     build:
       context: ../..
       dockerfile: docker/dev/celery/Dockerfile
-    command: ["celery", "-A", "main.worker.index", "worker", "--loglevel=info"]
+    command: ["celery", "-A", "main.worker.index", "worker", "--loglevel=warning"]
     environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-dev}:${POSTGRES_PASSWORD:-dev}@postgres:5432/${POSTGRES_DB:-shortlink_dev}
       REDIS_FOR_CLICKS_HOST: redis_clicks
       REDIS_FOR_CLICKS_PORT: "6381"
       REDIS_FOR_CLICKS_USERNAME: ${REDIS_CLICKS_APP_USERNAME:-shortlink_clicks}
       REDIS_FOR_CLICKS_PASSWORD: ${REDIS_CLICKS_APP_PASSWORD:-clicks_dev_secret}
     depends_on:
+      postgres:
+        condition: service_healthy
       redis_clicks:
         condition: service_healthy
     deploy:

@@ -11,6 +11,6 @@ class AggregateClicksHandler(Handler[None, None]):
         self.aggregator = aggregator
 
     async def handle(self, input: None) -> None:
-        items = await self.buffer.drain()
+        items = self.buffer.drain()
         counts = dict(Counter(items))
         await self.aggregator.aggregate(counts)

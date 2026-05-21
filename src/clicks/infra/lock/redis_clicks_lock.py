@@ -2,8 +2,10 @@ import uuid
 
 from redis.asyncio import Redis
 
+from clicks.domain.lock.clicks_lock import ClicksLock
+
 _LOCK_KEY = "clicks:aggregator:lock"
-_LOCK_TTL_MS = 55_000
+_LOCK_TTL_MS = 8_000
 
 # Atomically releases the lock only if the caller still owns it.
 _RELEASE_SCRIPT = """
@@ -15,7 +17,7 @@ end
 """
 
 
-class RedisClicksLock:
+class RedisClicksLock(ClicksLock):
     def __init__(self, redis_client: Redis) -> None:
         self._redis = redis_client
         self._token: str | None = None
