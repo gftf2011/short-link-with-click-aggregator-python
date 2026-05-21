@@ -27,9 +27,7 @@ class LoggingBatchGenerateShortlinkCodeUseCase(BatchGenerateShortlinkCodeUseCase
         log_data: dict[str, Any] = {}
         data = await self.batch_generate_shortlink_code_use_case.execute(input)
         if len(data.codes) > 0:
-            log_data["input"] = {
-                "input": {"start": input.start, "end": input.end},
-            }
+            log_data["input"] = {"start": input.start, "end": input.end}
             log_data["output"] = {"last_code": data.last_code}
             logger.info(json.dumps(log_data))
         return data
