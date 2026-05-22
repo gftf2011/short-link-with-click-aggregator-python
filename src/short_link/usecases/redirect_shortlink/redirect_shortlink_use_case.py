@@ -10,6 +10,7 @@ from short_link.domain.shortlink_aggregate import ShortLinkAggregate
 @dataclass
 class RedirectShortLinkUseCaseInput:
     code: str
+    click_impression_id: str
 
 
 @dataclass
@@ -36,7 +37,7 @@ class RedirectShortLinkUseCase(
                     f"Short link not found for code: {input.code}"
                 )
             short_link.validate_expires_at()
-            short_link.click()
+            short_link.click(input.click_impression_id)
             await self.mediator.publish(short_link.events)
             return RedirectShortLinkUseCaseOutput(url=short_link.url)
         except Exception as e:

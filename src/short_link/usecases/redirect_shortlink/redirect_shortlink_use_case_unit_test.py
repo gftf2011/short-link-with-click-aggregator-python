@@ -16,6 +16,8 @@ from short_link.usecases.redirect_shortlink.redirect_shortlink_use_case import (
     RedirectShortLinkUseCaseInput,
 )
 
+_IMPRESSION_ID = "abc123impression"
+
 
 @pytest.mark.asyncio
 async def test_given_valid_input_when_calls_execute_then_should_return_url():
@@ -35,13 +37,16 @@ async def test_given_valid_input_when_calls_execute_then_should_return_url():
     use_case = RedirectShortLinkUseCase(
         short_link_repository=short_link_repository, mediator=mediator
     )
-    result = await use_case.execute(RedirectShortLinkUseCaseInput(code="a1b2c3d"))
+    result = await use_case.execute(
+        RedirectShortLinkUseCaseInput(code="a1b2c3d", click_impression_id=_IMPRESSION_ID)
+    )
     assert result.url == "https://example.com"
     short_link_repository.get_by_code.assert_awaited_once_with("a1b2c3d")
     mediator.publish.assert_called_once()
     [event] = mediator.publish.call_args[0][0]
     assert isinstance(event, ShortlinkClickedEvent)
     assert event.short_code == "a1b2c3d"
+    assert event.click_impression_id == _IMPRESSION_ID
 
 
 @pytest.mark.asyncio
@@ -55,7 +60,9 @@ async def test_given_valid_input_when_calls_execute_and_does_not_find_short_link
     with pytest.raises(
         ApplicationException, match=re.escape("Short link not found for code: a1b2c3d")
     ):
-        await use_case.execute(RedirectShortLinkUseCaseInput(code="a1b2c3d"))
+        await use_case.execute(
+            RedirectShortLinkUseCaseInput(code="a1b2c3d", click_impression_id=_IMPRESSION_ID)
+        )
     short_link_repository.get_by_code.assert_awaited_once_with("a1b2c3d")
     mediator.publish.assert_not_called()
 
@@ -81,7 +88,9 @@ async def test_given_short_link_expired_when_calls_execute_then_should_raise_dom
     with pytest.raises(
         DomainException, match=re.escape("expires_at cannot be in the past")
     ):
-        await use_case.execute(RedirectShortLinkUseCaseInput(code="a1b2c3d"))
+        await use_case.execute(
+            RedirectShortLinkUseCaseInput(code="a1b2c3d", click_impression_id=_IMPRESSION_ID)
+        )
     short_link_repository.get_by_code.assert_awaited_once_with("a1b2c3d")
     mediator.publish.assert_not_called()
 
@@ -97,6 +106,8 @@ async def test_given_valid_input_when_calls_execute_and_repository_raises_except
         short_link_repository=short_link_repository, mediator=mediator
     )
     with pytest.raises(Exception, match=re.escape("Repository error")):
-        await use_case.execute(RedirectShortLinkUseCaseInput(code="a1b2c3d"))
+        await use_case.execute(
+            RedirectShortLinkUseCaseInput(code="a1b2c3d", click_impression_id=_IMPRESSION_ID)
+        )
     short_link_repository.get_by_code.assert_awaited_once_with("a1b2c3d")
     mediator.publish.assert_not_called()

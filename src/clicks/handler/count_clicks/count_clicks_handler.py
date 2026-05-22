@@ -8,4 +8,4 @@ class CountClicksHandler(Handler[ShortlinkClickedEvent, None]):
         self.buffer = buffer
 
     async def handle(self, input: ShortlinkClickedEvent) -> None:
-        self.buffer.add(input.short_code)
+        self.buffer.add(input.short_code, input.click_impression_id)

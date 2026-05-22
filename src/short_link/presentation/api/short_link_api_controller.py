@@ -73,7 +73,7 @@ class ShortLinkApiController:
     async def redirect(
         self, request: RedirectShortLinkRequestDTO
     ) -> RedirectShortLinkResponseDTO:
-        usecase_input = RedirectShortLinkUseCaseInput(code=request.code)
+        usecase_input = RedirectShortLinkUseCaseInput(code=request.code, click_impression_id=request.click_impression_id)
         try:
             output = await self.redirectShortLinkUseCase.execute(usecase_input)
             return RedirectShortLinkResponseDTO(

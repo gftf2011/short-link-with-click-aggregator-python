@@ -1,6 +1,8 @@
+import hashlib
+from datetime import datetime, timezone
 from typing import Annotated
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from fastapi.responses import JSONResponse, RedirectResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -21,6 +23,18 @@ from short_link.presentation.api.dtos.redirect_shortlink_response import (
 )
 
 router = APIRouter(prefix="/v1", tags=["shortlink"])
+
+
+def impression_id(request: Request) -> str:
+    forwarded_for = request.headers.get("x-forwarded-for")
+    ip = (
+        forwarded_for.split(",")[0].strip()
+        if forwarded_for
+        else (request.client.host if request.client else "unknown")
+    )
+    code = request.path_params.get("code", "")
+    timestamp = datetime.now(timezone.utc).replace(microsecond=0).isoformat()
+    return hashlib.sha256(f"{code}:{ip}:{timestamp}".encode()).hexdigest()
 
 
 @router.post(
@@ -56,10 +70,12 @@ async def create_shortlink(
     },
 )
 async def redirect_shortlink(
-    code: str, session: Annotated[AsyncSession, Depends(get_async_session)]
+    code: str,
+    session: Annotated[AsyncSession, Depends(get_async_session)],
+    click_impression_id: Annotated[str, Depends(impression_id)],
 ) -> RedirectResponse | JSONResponse:
     shortlink_controller = http(session)
-    result = await shortlink_controller.redirect(RedirectShortLinkRequestDTO(code=code))
+    result = await shortlink_controller.redirect(RedirectShortLinkRequestDTO(code=code, click_impression_id=click_impression_id))
     if result.status == 302 and isinstance(
         result.data, RedirectShortLinkSuccessResponseDataDTO
     ):

@@ -71,5 +71,5 @@ class ShortLinkAggregate(Entity):
         if self.notification.has_exceptions():
             raise DomainException(self.notification.messages)
 
-    def click(self) -> None:
-        self.events.append(ShortlinkClickedEvent(short_code=self.short_code))
+    def click(self, click_impression_id: str) -> None:
+        self.events.append(ShortlinkClickedEvent(short_code=self.short_code, click_impression_id=click_impression_id))

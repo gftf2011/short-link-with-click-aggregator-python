@@ -8,4 +8,5 @@ from shared.domain.event import Event
 class ShortlinkClickedEvent(Event):
     name: str = field(default="ShortlinkClickedEvent", init=False)
     short_code: str
+    click_impression_id: str
     clicked_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
