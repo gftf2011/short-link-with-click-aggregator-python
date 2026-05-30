@@ -17,6 +17,7 @@ class CeleryCountClicksTask(Task):
     def run(self, event: dict) -> None:
         clicked_event = ShortlinkClickedEvent(
             short_code=event["short_code"],
+            click_impression_id=event["click_impression_id"],
             clicked_at=datetime.fromisoformat(event["clicked_at"]),
         )
         asyncio.run(self.handler.handle(clicked_event))

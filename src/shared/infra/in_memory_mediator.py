@@ -17,6 +17,4 @@ class InMemoryMediator(Mediator):
     async def publish(self, events: list[Event]) -> None:
         for event in events:
             for handler in self._handlers[type(event)]:
-                asyncio.create_task(
-                    asyncio.to_thread(asyncio.run, handler.handle(event))
-                )
+                asyncio.create_task(handler.handle(event))

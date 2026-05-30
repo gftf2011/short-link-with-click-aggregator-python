@@ -1,4 +1,4 @@
-name: short-link-dev
+name: click-dev
 
 services:
   postgres:
@@ -7,11 +7,11 @@ services:
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-dev}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-dev}
-      POSTGRES_DB: ${POSTGRES_DB:-shortlink_dev}
+      POSTGRES_DB: ${POSTGRES_DB:-click_dev}
     ports:
       - "${POSTGRES_PORT:-5432}:5432"
     volumes:
-      - shortlink_dev_pgdata:/var/lib/postgresql/data
+      - click_dev_pgdata:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
       interval: 3s
@@ -25,12 +25,12 @@ services:
     environment:
       REDIS_CACHE_MASTER_PASSWORD: ${REDIS_CACHE_MASTER_PASSWORD:-cache_master_dev}
       REDIS_CACHE_MAXMEMORY: ${REDIS_CACHE_MAXMEMORY:-128mb}
-      REDIS_CACHE_APP_USERNAME: ${REDIS_CACHE_APP_USERNAME:-shortlink_cache}
+      REDIS_CACHE_APP_USERNAME: ${REDIS_CACHE_APP_USERNAME:-click_cache}
       REDIS_CACHE_APP_PASSWORD: ${REDIS_CACHE_APP_PASSWORD:-cache_dev_secret}
     ports:
       - "${REDIS_CACHE_PUBLISH_PORT:-6379}:6379"
     volumes:
-      - shortlink_dev_redis_cache_data:/data
+      - click_dev_redis_cache_data:/data
     healthcheck:
       test: ["CMD", "/usr/local/bin/redis-healthcheck.sh"]
       interval: 3s
@@ -49,12 +49,12 @@ services:
     environment:
       REDIS_CODES_MASTER_PASSWORD: ${REDIS_CODES_MASTER_PASSWORD:-codes_master_dev}
       REDIS_CODES_MAXMEMORY: ${REDIS_CODES_MAXMEMORY:-512mb}
-      REDIS_CODES_APP_USERNAME: ${REDIS_CODES_APP_USERNAME:-shortlink_codes}
+      REDIS_CODES_APP_USERNAME: ${REDIS_CODES_APP_USERNAME:-click_codes}
       REDIS_CODES_APP_PASSWORD: ${REDIS_CODES_APP_PASSWORD:-codes_dev_secret}
     ports:
       - "${REDIS_CODES_PUBLISH_PORT:-6380}:6380"
     volumes:
-      - shortlink_dev_redis_codes_data:/data
+      - click_dev_redis_codes_data:/data
     healthcheck:
       test: ["CMD", "/usr/local/bin/redis-healthcheck.sh"]
       interval: 3s
@@ -73,12 +73,12 @@ services:
     environment:
       REDIS_CLICKS_MASTER_PASSWORD: ${REDIS_CLICKS_MASTER_PASSWORD:-clicks_master_dev}
       REDIS_CLICKS_MAXMEMORY: ${REDIS_CLICKS_MAXMEMORY:-128mb}
-      REDIS_CLICKS_APP_USERNAME: ${REDIS_CLICKS_APP_USERNAME:-shortlink_clicks}
+      REDIS_CLICKS_APP_USERNAME: ${REDIS_CLICKS_APP_USERNAME:-click_clicks}
       REDIS_CLICKS_APP_PASSWORD: ${REDIS_CLICKS_APP_PASSWORD:-clicks_dev_secret}
     ports:
       - "${REDIS_CLICKS_PUBLISH_PORT:-6381}:6381"
     volumes:
-      - shortlink_dev_redis_clicks_data:/data
+      - click_dev_redis_clicks_data:/data
     healthcheck:
       test: ["CMD", "/usr/local/bin/redis-healthcheck.sh"]
       interval: 3s
@@ -95,18 +95,18 @@ services:
       context: ../..
       dockerfile: docker/dev/api/Dockerfile
     environment:
-      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-dev}:${POSTGRES_PASSWORD:-dev}@postgres:5432/${POSTGRES_DB:-shortlink_dev}
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-dev}:${POSTGRES_PASSWORD:-dev}@postgres:5432/${POSTGRES_DB:-click_dev}
       REDIS_FOR_SHORTLINK_CACHE_HOST: redis_cache
       REDIS_FOR_SHORTLINK_CACHE_PORT: "6379"
-      REDIS_FOR_SHORTLINK_CACHE_USERNAME: ${REDIS_CACHE_APP_USERNAME:-shortlink_cache}
+      REDIS_FOR_SHORTLINK_CACHE_USERNAME: ${REDIS_CACHE_APP_USERNAME:-click_cache}
       REDIS_FOR_SHORTLINK_CACHE_PASSWORD: ${REDIS_CACHE_APP_PASSWORD:-cache_dev_secret}
       REDIS_FOR_SHORTLINK_CODES_HOST: redis_codes
       REDIS_FOR_SHORTLINK_CODES_PORT: "6380"
-      REDIS_FOR_SHORTLINK_CODES_USERNAME: ${REDIS_CODES_APP_USERNAME:-shortlink_codes}
+      REDIS_FOR_SHORTLINK_CODES_USERNAME: ${REDIS_CODES_APP_USERNAME:-click_codes}
       REDIS_FOR_SHORTLINK_CODES_PASSWORD: ${REDIS_CODES_APP_PASSWORD:-codes_dev_secret}
       REDIS_FOR_CLICKS_HOST: redis_clicks
       REDIS_FOR_CLICKS_PORT: "6381"
-      REDIS_FOR_CLICKS_USERNAME: ${REDIS_CLICKS_APP_USERNAME:-shortlink_clicks}
+      REDIS_FOR_CLICKS_USERNAME: ${REDIS_CLICKS_APP_USERNAME:-click_clicks}
       REDIS_FOR_CLICKS_PASSWORD: ${REDIS_CLICKS_APP_PASSWORD:-clicks_dev_secret}
     ports:
       - "${API_PORT:-8000}:8000"
@@ -140,8 +140,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.25"
-          memory: 128M
+          cpus: "1.0"
+          memory: 256M
 
   celery_worker:
     build:
@@ -149,10 +149,10 @@ services:
       dockerfile: docker/dev/celery/Dockerfile
     command: ["celery", "-A", "main.worker.index", "worker", "--loglevel=warning"]
     environment:
-      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-dev}:${POSTGRES_PASSWORD:-dev}@postgres:5432/${POSTGRES_DB:-shortlink_dev}
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-dev}:${POSTGRES_PASSWORD:-dev}@postgres:5432/${POSTGRES_DB:-click_dev}
       REDIS_FOR_CLICKS_HOST: redis_clicks
       REDIS_FOR_CLICKS_PORT: "6381"
-      REDIS_FOR_CLICKS_USERNAME: ${REDIS_CLICKS_APP_USERNAME:-shortlink_clicks}
+      REDIS_FOR_CLICKS_USERNAME: ${REDIS_CLICKS_APP_USERNAME:-click_clicks}
       REDIS_FOR_CLICKS_PASSWORD: ${REDIS_CLICKS_APP_PASSWORD:-clicks_dev_secret}
     depends_on:
       postgres:
@@ -173,7 +173,7 @@ services:
     environment:
       REDIS_FOR_CLICKS_HOST: redis_clicks
       REDIS_FOR_CLICKS_PORT: "6381"
-      REDIS_FOR_CLICKS_USERNAME: ${REDIS_CLICKS_APP_USERNAME:-shortlink_clicks}
+      REDIS_FOR_CLICKS_USERNAME: ${REDIS_CLICKS_APP_USERNAME:-click_clicks}
       REDIS_FOR_CLICKS_PASSWORD: ${REDIS_CLICKS_APP_PASSWORD:-clicks_dev_secret}
     depends_on:
       redis_clicks:
@@ -191,7 +191,7 @@ services:
     environment:
       REDIS_FOR_SHORTLINK_CODES_HOST: redis_codes
       REDIS_FOR_SHORTLINK_CODES_PORT: "6380"
-      REDIS_FOR_SHORTLINK_CODES_USERNAME: ${REDIS_CODES_APP_USERNAME:-shortlink_codes}
+      REDIS_FOR_SHORTLINK_CODES_USERNAME: ${REDIS_CODES_APP_USERNAME:-click_codes}
       REDIS_FOR_SHORTLINK_CODES_PASSWORD: ${REDIS_CODES_APP_PASSWORD:-codes_dev_secret}
       MAX_SHORTLINK_CODES: "17000001"
       SHORTLINK_CODES_BATCH_SIZE: "4000"
@@ -205,7 +205,7 @@ services:
           memory: 256M
 
 volumes:
-  shortlink_dev_pgdata:
-  shortlink_dev_redis_cache_data:
-  shortlink_dev_redis_codes_data:
-  shortlink_dev_redis_clicks_data:
+  click_dev_pgdata:
+  click_dev_redis_cache_data:
+  click_dev_redis_codes_data:
+  click_dev_redis_clicks_data:

@@ -1,6 +1,6 @@
 upstream uvicorn_backend {
     server ${APP_HOST}:${APP_PORT};
-    keepalive 128;
+    keepalive 256;
 }
 
 server {
